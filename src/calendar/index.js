@@ -113,7 +113,10 @@ class Calendar extends Component {
     const currentDateString = nextState.currentMonth[1].toString('yyyy MM')
     const minDateString = this.state.currentMonth[1].toString('yyyy MM')
 
-    if (nextCurrentMonth !== this.state.currentMonth && currentDateString !== minDateString) {
+    if (nextCurrentMonth !== this.state.currentMonth
+        && currentDateString !== minDateString
+        && this.props.current === nextProps.current
+      ) {
 
       const currentSelectDay = nextState.currentMonth[1].clone().setDate(current.getDate())
 

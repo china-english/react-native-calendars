@@ -5,6 +5,7 @@ import XDate from 'xdate';
 import PropTypes from 'prop-types';
 import styleConstructor from './style';
 import { weekDayNames } from '../../dateutils';
+import { xdateToData } from '../../interface';
 import {
   CHANGE_MONTH_LEFT_ARROW,
   CHANGE_MONTH_RIGHT_ARROW
@@ -91,7 +92,7 @@ class CalendarHeader extends Component {
           testID={CHANGE_MONTH_LEFT_ARROW}
         >
           {this.props.renderArrow
-            ? this.props.renderArrow('left')
+            ? this.props.renderArrow('left', xdateToData(this.props.month))
             : <Image
                 source={require('../img/previous.png')}
                 style={this.style.arrowImage}
@@ -106,7 +107,7 @@ class CalendarHeader extends Component {
           testID={CHANGE_MONTH_RIGHT_ARROW}
         >
           {this.props.renderArrow
-            ? this.props.renderArrow('right')
+            ? this.props.renderArrow('right', xdateToData(this.props.month))
             : <Image
                 source={require('../img/next.png')}
                 style={this.style.arrowImage}
