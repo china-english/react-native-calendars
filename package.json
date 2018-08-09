@@ -1,20 +1,17 @@
 {
-  "name": "react-native-calendars",
-  "version": "1.20.0",
+  "name": "react-native-calendars-fei",
+  "version": "0.0.1",
   "main": "src/index.js",
   "description": "React Native Calendar Components",
   "scripts": {
     "test": "jasmine src/*.spec.js && npm run lint",
     "lint": "eslint src/ example/src"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/wix/react-native-calendars"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  },
-  "author": "Wix.com",
+  "keywords": [
+    "react-native",
+    "calendars"
+  ],
+  "author": "AFei",
   "license": "MIT",
   "dependencies": {
     "lodash.get": "^4.4.2",

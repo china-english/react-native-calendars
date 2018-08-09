@@ -12,7 +12,8 @@ export default function getStyle(theme={}) {
       backgroundColor: appStyle.calendarBackground
     },
     monthView: {
-      backgroundColor: appStyle.calendarBackground
+      backgroundColor: appStyle.calendarBackground,
+      width: appStyle.calendarWidth,
     },
     week: {
       marginTop: 7,
@@ -26,4 +27,3 @@ export default function getStyle(theme={}) {
     ...(theme[STYLESHEET_ID] || {})
   });
 }
-

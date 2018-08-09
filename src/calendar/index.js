@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import {
   View,
-  ViewPropTypes
+  ViewPropTypes,
+  ScrollView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 
@@ -41,7 +42,7 @@ class Calendar extends Component {
     // If firstDay=1 week starts from Monday. Note that dayNames and dayNamesShort should still start from Sunday.
     firstDay: PropTypes.number,
 
-    // Date marking style [simple/period/multi-dot/multi-period]. Default = 'simple' 
+    // Date marking style [simple/period/multi-dot/multi-period]. Default = 'simple'
     markingType: PropTypes.string,
 
     // Hide month navigation arrows. Default = false
@@ -75,7 +76,9 @@ class Calendar extends Component {
     // Handler which gets executed when press arrow icon left. It receive a callback can go back month
     onPressArrowLeft: PropTypes.func,
     // Handler which gets executed when press arrow icon left. It receive a callback can go next month
-    onPressArrowRight: PropTypes.func
+    onPressArrowRight: PropTypes.func,
+    // 日历展示宽度
+    calendarWidth: PropTypes.number
   };
 
   constructor(props) {
@@ -83,47 +86,83 @@ class Calendar extends Component {
     this.style = styleConstructor(this.props.theme);
     let currentMonth;
     if (props.current) {
-      currentMonth = parseDate(props.current);
+      minMonth=parseDate(props.current)
+      currentMonth = [
+        parseDate(props.current).addMonths(-1),
+        parseDate(props.current),
+        parseDate(props.current).addMonths(1),
+      ];
     } else {
-      currentMonth = XDate();
+      minMonth=XDate()
+      currentMonth = [
+        XDate().addMonths(-1),
+        XDate(),
+        XDate().addMonths(1),
+      ];
     }
     this.state = {
-      currentMonth
+      currentMonth,
+      minMonth
     };
 
-    this.updateMonth = this.updateMonth.bind(this);
-    this.addMonth = this.addMonth.bind(this);
-    this.pressDay = this.pressDay.bind(this);
-    this.longPressDay = this.longPressDay.bind(this);
-    this.shouldComponentUpdate = shouldComponentUpdate;
   }
 
-  componentWillReceiveProps(nextProps) {
-    const current= parseDate(nextProps.current);
-    if (current && current.toString('yyyy MM') !== this.state.currentMonth.toString('yyyy MM')) {
-      this.setState({
-        currentMonth: current.clone()
-      });
-    }
-  }
+  componentWillUpdate(nextProps, nextState) {
+    const current= parseDate(this.props.current).clone();
+    const nextCurrentMonth= parseDate(nextState.currentMonth);
+    const currentDateString = nextState.currentMonth[1].toString('yyyy MM')
+    const minDateString = this.state.currentMonth[1].toString('yyyy MM')
 
-  updateMonth(day, doNotTriggerListeners) {
-    if (day.toString('yyyy MM') === this.state.currentMonth.toString('yyyy MM')) {
-      return;
-    }
-    this.setState({
-      currentMonth: day.clone()
-    }, () => {
-      if (!doNotTriggerListeners) {
-        const currMont = this.state.currentMonth.clone();
-        if (this.props.onMonthChange) {
-          this.props.onMonthChange(xdateToData(currMont));
-        }
-        if (this.props.onVisibleMonthsChange) {
-          this.props.onVisibleMonthsChange([xdateToData(currMont)]);
-        }
+    if (nextCurrentMonth !== this.state.currentMonth && currentDateString !== minDateString) {
+
+      const currentSelectDay = nextState.currentMonth[1].clone().setDate(current.getDate())
+
+      while (currentSelectDay.getMonth() !== nextState.currentMonth[1].clone().getMonth()) {
+        currentSelectDay.addDays(-1)
       }
-    });
+      this._handleDayInteraction(currentSelectDay, this.props.onDayPress);
+    }
+  }
+
+  selectChangeMonth = (day) => {
+    const dateString = day.toString('yyyy MM');
+    const minDateString = this.state.currentMonth[1].toString('yyyy MM')
+
+    if (dateString > minDateString) {
+      this.scrollChangeMonth(this.props.calendarWidth + 1)
+    } else if (dateString < minDateString) {
+      this.scrollChangeMonth(this.props.calendarWidth - 1)
+    }
+  }
+
+  scrollChangeMonth = (event) => {
+    const scrollX = event.nativeEvent ? event.nativeEvent.contentOffset.x : event;
+    let newMonth = [];
+    this.state.currentMonth.map((value) =>
+      newMonth.push(value.clone())
+    );
+    const currentDate = this.state.currentMonth[1].clone()
+
+    if(scrollX > this.props.calendarWidth) {
+      const newDate = currentDate.addMonths(2).clone()
+      newMonth.push(newDate)
+      newMonth.shift()
+      this.setState({
+        currentMonth: newMonth,
+      })
+    } else if (scrollX < this.props.calendarWidth) {
+      if (this.state.currentMonth[0].toString('yyyy MM') < this.state.minMonth.toString('yyyy MM')) {
+        this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: true })
+        return null;
+      }
+      const newDate = currentDate.addMonths(-2).clone()
+      newMonth.unshift(newDate)
+      newMonth.pop()
+      this.setState({
+        currentMonth: newMonth,
+      })
+    }
+    this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated:false })
   }
 
   _handleDayInteraction(date, interaction) {
@@ -133,7 +172,7 @@ class Calendar extends Component {
     if (!(minDate && !dateutils.isGTE(day, minDate)) && !(maxDate && !dateutils.isLTE(day, maxDate))) {
       const shouldUpdateMonth = this.props.disableMonthChange === undefined || !this.props.disableMonthChange;
       if (shouldUpdateMonth) {
-        this.updateMonth(day);
+        this.selectChangeMonth(day);
       }
       if (interaction) {
         interaction(xdateToData(day));
@@ -141,19 +180,23 @@ class Calendar extends Component {
     }
   }
 
-  pressDay(date) {
+  pressDay = (date) => {
     this._handleDayInteraction(date, this.props.onDayPress);
   }
 
-  longPressDay(date) {
+  longPressDay = (date) => {
     this._handleDayInteraction(date, this.props.onDayLongPress);
   }
 
-  addMonth(count) {
-    this.updateMonth(this.state.currentMonth.clone().addMonths(count, true));
+  addMonth = (count) => {
+    if (count > 0) {
+      this.scrollChangeMonth(this.props.calendarWidth + 1)
+    } else {
+      this.scrollChangeMonth(this.props.calendarWidth - 1)
+    }
   }
 
-  renderDay(day, id) {
+  renderDay(day, id, month) {
     const minDate = parseDate(this.props.minDate);
     const maxDate = parseDate(this.props.maxDate);
     let state = '';
@@ -161,13 +204,13 @@ class Calendar extends Component {
       state = 'disabled';
     } else if ((minDate && !dateutils.isGTE(day, minDate)) || (maxDate && !dateutils.isLTE(day, maxDate))) {
       state = 'disabled';
-    } else if (!dateutils.sameMonth(day, this.state.currentMonth)) {
+    } else if (!dateutils.sameMonth(day, month)) {
       state = 'disabled';
     } else if (dateutils.sameDate(day, XDate())) {
       state = 'today';
     }
     let dayComp;
-    if (!dateutils.sameMonth(day, this.state.currentMonth) && this.props.hideExtraDays) {
+    if (!dateutils.sameMonth(day, month) && this.props.hideExtraDays) {
       if (['period', 'multi-period'].includes(this.props.markingType)) {
         dayComp = (<View key={id} style={{flex: 1}}/>);
       } else {
@@ -228,10 +271,10 @@ class Calendar extends Component {
     return <Day key={`week-${weekNumber}`} theme={this.props.theme} marking={{disableTouchEvent: true}} state='disabled'>{weekNumber}</Day>;
   }
 
-  renderWeek(days, id) {
+  renderWeek(days, id, month) {
     const week = [];
     days.forEach((day, id2) => {
-      week.push(this.renderDay(day, id2));
+      week.push(this.renderDay(day, id2, month));
     }, this);
 
     if (this.props.showWeekNumbers) {
@@ -242,26 +285,31 @@ class Calendar extends Component {
   }
 
   render() {
-    const days = dateutils.page(this.state.currentMonth, this.props.firstDay);
-    const weeks = [];
-    while (days.length) {
-      weeks.push(this.renderWeek(days.splice(0, 7), weeks.length));
-    }
+    let showMonthWeeks = [];
     let indicator;
-    const current = parseDate(this.props.current);
-    if (current) {
-      const lastMonthOfDay = current.clone().addMonths(1, true).setDate(1).addDays(-1).toString('yyyy-MM-dd');
-      if (this.props.displayLoadingIndicator &&
-          !(this.props.markedDates && this.props.markedDates[lastMonthOfDay])) {
-        indicator = true;
+    this.state.currentMonth.map((month, index) => {
+      const days = dateutils.page(month, this.props.firstDay);
+      const weeks = [];
+      while (days.length) {
+        weeks.push(this.renderWeek(days.splice(0, 7), weeks.length, month));
       }
-    }
+      const current = parseDate(this.props.current);
+      if (current) {
+        const lastMonthOfDay = current.clone().addMonths(1, true).setDate(1).addDays(-1).toString('yyyy-MM-dd');
+        if (this.props.displayLoadingIndicator &&
+            !(this.props.markedDates && this.props.markedDates[lastMonthOfDay])) {
+          indicator = true;
+        }
+      }
+      showMonthWeeks = [...showMonthWeeks, weeks]
+    })
+
     return (
       <View style={[this.style.container, this.props.style]}>
         <CalendarHeader
           theme={this.props.theme}
           hideArrows={this.props.hideArrows}
-          month={this.state.currentMonth}
+          month={this.state.currentMonth[1]}
           addMonth={this.addMonth}
           showIndicator={indicator}
           firstDay={this.props.firstDay}
@@ -272,7 +320,22 @@ class Calendar extends Component {
           onPressArrowLeft={this.props.onPressArrowLeft}
           onPressArrowRight={this.props.onPressArrowRight}
         />
-        <View style={this.style.monthView}>{weeks}</View>
+        <ScrollView
+          ref={(c) => this.scrollView = c }
+          horizontal
+          pagingEnabled
+          style={{ width: this.props.calendarWidth }}
+          contentOffset={{ x: this.props.calendarWidth, y:0 }}
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={this.scrollChangeMonth}
+        >
+          {showMonthWeeks.map((value, index) => (
+              <View key={index} style={this.style.monthView}>
+                {value}
+              </View>
+            ))
+          }
+        </ScrollView>
       </View>);
   }
 }
