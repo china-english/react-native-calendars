@@ -108,22 +108,33 @@ class Calendar extends Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    const current= parseDate(this.props.current).clone();
     const nextCurrentMonth= parseDate(nextState.currentMonth);
     const currentDateString = nextState.currentMonth[1].toString('yyyy MM')
     const minDateString = this.state.currentMonth[1].toString('yyyy MM')
+
+    const minDate = parseDate(this.props.minDate);
+
+    let current;
+    if (this.props.current) {
+      current= parseDate(this.props.current).clone();
+    }
 
     if (nextCurrentMonth !== this.state.currentMonth
         && currentDateString !== minDateString
         && this.props.current === nextProps.current
       ) {
 
-      const currentSelectDay = nextState.currentMonth[1].clone().setDate(current.getDate())
+      let currentSelectDay = nextState.currentMonth[1].clone();
+      if (current) currentSelectDay = currentSelectDay.setDate(current.getDate())
 
       while (currentSelectDay.getMonth() !== nextState.currentMonth[1].clone().getMonth()) {
         currentSelectDay.addDays(-1)
       }
-      this._handleDayInteraction(currentSelectDay, this.props.onDayPress);
+      if (currentSelectDay < minDate){
+        this._handleDayInteraction(minDate, this.props.onDayPress)
+      } else {
+        this._handleDayInteraction(currentSelectDay, this.props.onDayPress)
+      };
     }
   }
 
@@ -209,7 +220,8 @@ class Calendar extends Component {
       state = 'disabled';
     } else if (!dateutils.sameMonth(day, month)) {
       state = 'disabled';
-    } else if (dateutils.sameDate(day, XDate())) {
+    }
+    if (dateutils.sameDate(day, XDate())) {
       state = 'today';
     }
     let dayComp;
