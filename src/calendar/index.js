@@ -3,6 +3,7 @@ import {
   View,
   ViewPropTypes,
   ScrollView,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 
@@ -22,6 +23,7 @@ import shouldComponentUpdate from './updater';
 const viewPropTypes = ViewPropTypes || View.propTypes;
 
 const EmptyArray = [];
+const isAndroid = Platform.OS === 'android';
 
 class Calendar extends Component {
   static propTypes = {
@@ -87,14 +89,20 @@ class Calendar extends Component {
     let currentMonth;
     if (props.current) {
       minMonth=parseDate(props.current)
-      currentMonth = [
+      currentMonth = isAndroid ? [
+        parseDate(props.current),
+        parseDate(props.current).addMonths(1),
+      ] : [
         parseDate(props.current).addMonths(-1),
         parseDate(props.current),
         parseDate(props.current).addMonths(1),
       ];
     } else {
       minMonth=XDate()
-      currentMonth = [
+      currentMonth = isAndroid ? [
+        XDate(),
+        XDate().addMonths(1),
+      ] : [
         XDate().addMonths(-1),
         XDate(),
         XDate().addMonths(1),
@@ -102,7 +110,8 @@ class Calendar extends Component {
     }
     this.state = {
       currentMonth,
-      minMonth
+      minMonth,
+      translateX: props.calendarWidth,
     };
 
   }
@@ -110,7 +119,7 @@ class Calendar extends Component {
   componentWillUpdate(nextProps, nextState) {
     const nextCurrentMonth= parseDate(nextState.currentMonth);
     const currentDateString = nextState.currentMonth[1].toString('yyyy MM')
-    const minDateString = this.state.currentMonth[1].toString('yyyy MM')
+    const minDateString = this.state.currentMonth.length < 3 ? this.state.currentMonth[0].toString('yyyy MM') : this.state.currentMonth[1].toString('yyyy MM')
 
     const minDate = parseDate(this.props.minDate);
 
@@ -119,8 +128,7 @@ class Calendar extends Component {
       current= parseDate(this.props.current).clone();
     }
 
-    if (nextCurrentMonth !== this.state.currentMonth
-        && currentDateString !== minDateString
+    if (currentDateString !== minDateString
         && this.props.current === nextProps.current
       ) {
 
@@ -155,28 +163,28 @@ class Calendar extends Component {
     this.state.currentMonth.map((value) =>
       newMonth.push(value.clone())
     );
-    const currentDate = this.state.currentMonth[1].clone()
+    const currentDate = (this.state.currentMonth.length < 3) ? this.state.currentMonth[0].clone() : this.state.currentMonth[1].clone()
 
-    if(scrollX > this.props.calendarWidth) {
+    if(scrollX >= this.props.calendarWidth) {
       const newDate = currentDate.addMonths(2).clone()
       newMonth.push(newDate)
-      newMonth.shift()
+      if(this.state.currentMonth.length >= 3) newMonth.shift();
       this.setState({
         currentMonth: newMonth,
       })
     } else if (scrollX < this.props.calendarWidth) {
-      if (this.state.currentMonth[0].toString('yyyy MM') < this.state.minMonth.toString('yyyy MM')) {
+      if ((this.state.currentMonth[0].toString('yyyy MM') < this.state.minMonth.toString('yyyy MM')) && (this.state.currentMonth.length >= 3)) {
         this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: true })
         return null;
       }
       const newDate = currentDate.addMonths(-2).clone()
       newMonth.unshift(newDate)
-      newMonth.pop()
+      if(this.state.currentMonth.length >= 3)newMonth.pop()
       this.setState({
         currentMonth: newMonth,
       })
     }
-    this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated:false })
+    this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: isAndroid })
   }
 
   _handleDayInteraction(date, interaction) {
@@ -339,6 +347,7 @@ class Calendar extends Component {
           ref={(c) => this.scrollView = c }
           horizontal
           pagingEnabled
+          snapToAlignment='center'
           style={{ width: this.props.calendarWidth }}
           contentOffset={{ x: this.props.calendarWidth, y:0 }}
           showsHorizontalScrollIndicator={false}
