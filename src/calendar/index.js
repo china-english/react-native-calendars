@@ -168,23 +168,30 @@ class Calendar extends Component {
     if(scrollX >= this.props.calendarWidth) {
       const newDate = currentDate.addMonths(2).clone()
       newMonth.push(newDate)
-      if(this.state.currentMonth.length >= 3) newMonth.shift();
+      if(newMonth.length > 3) {
+        newMonth.shift();
+      }
       this.setState({
         currentMonth: newMonth,
       })
     } else if (scrollX < this.props.calendarWidth) {
-      if ((this.state.currentMonth[0].toString('yyyy MM') < this.state.minMonth.toString('yyyy MM')) && (this.state.currentMonth.length >= 3)) {
+
+      if (this.state.currentMonth[0].toString('yyyy MM') < this.state.minMonth.toString('yyyy MM')) {
         this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: true })
         return null;
       }
       const newDate = currentDate.addMonths(-2).clone()
-      newMonth.unshift(newDate)
-      if(this.state.currentMonth.length >= 3)newMonth.pop()
+      if(newMonth.length >= 3) {
+        newMonth.unshift(newDate)
+        newMonth.pop()
+      }
       this.setState({
         currentMonth: newMonth,
       })
     }
-    this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: isAndroid })
+    if (newMonth.length === 3){
+      this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: isAndroid })
+    }
   }
 
   _handleDayInteraction(date, interaction) {
