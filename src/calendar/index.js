@@ -164,8 +164,8 @@ class Calendar extends Component {
       newMonth.push(value.clone())
     );
     const currentDate = (this.state.currentMonth.length < 3) ? this.state.currentMonth[0].clone() : this.state.currentMonth[1].clone()
-
-    if(scrollX >= this.props.calendarWidth) {
+    const isGonextMonth = isAndroid ? scrollX >= this.props.calendarWidth : scrollX > this.props.calendarWidth
+    if(isGonextMonth) {
       const newDate = currentDate.addMonths(2).clone()
       newMonth.push(newDate)
       if(newMonth.length > 3) {
@@ -189,7 +189,7 @@ class Calendar extends Component {
         currentMonth: newMonth,
       })
     }
-    if (newMonth.length === 3){
+    if (newMonth.length >= 3){
       this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: isAndroid })
     }
   }
