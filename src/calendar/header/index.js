@@ -19,6 +19,7 @@ class CalendarHeader extends Component {
     addMonth: PropTypes.func,
     showIndicator: PropTypes.bool,
     firstDay: PropTypes.number,
+    weekDayNames: PropTypes.array,
     renderArrow: PropTypes.func,
     hideDayNames: PropTypes.bool,
     weekNumbers: PropTypes.bool,
@@ -82,7 +83,7 @@ class CalendarHeader extends Component {
   render() {
     let leftArrow = <View />;
     let rightArrow = <View />;
-    let weekDaysNames = weekDayNames(this.props.firstDay);
+    let weekDaysNames = this.props.weekDayNames || weekDayNames(this.props.firstDay);
     if (!this.props.hideArrows) {
       leftArrow = (
         <TouchableOpacity

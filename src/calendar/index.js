@@ -43,7 +43,7 @@ class Calendar extends Component {
 
     // If firstDay=1 week starts from Monday. Note that dayNames and dayNamesShort should still start from Sunday.
     firstDay: PropTypes.number,
-
+    weekDayNames: PropTypes.array,
     // Date marking style [simple/period/multi-dot/multi-period]. Default = 'simple'
     markingType: PropTypes.string,
 
@@ -88,7 +88,7 @@ class Calendar extends Component {
     this.style = styleConstructor(this.props.theme);
     let currentMonth;
     if (props.current) {
-      minMonth=parseDate(props.current)
+      minMonth=parseDate(props.current);
       currentMonth = isAndroid ? [
         parseDate(props.current),
         parseDate(props.current).addMonths(1),
@@ -98,7 +98,7 @@ class Calendar extends Component {
         parseDate(props.current).addMonths(1),
       ];
     } else {
-      minMonth=XDate()
+      minMonth=XDate();
       currentMonth = isAndroid ? [
         XDate(),
         XDate().addMonths(1),
@@ -118,8 +118,8 @@ class Calendar extends Component {
 
   componentWillUpdate(nextProps, nextState) {
     const nextCurrentMonth= parseDate(nextState.currentMonth);
-    const currentDateString = nextState.currentMonth[1].toString('yyyy MM')
-    const minDateString = this.state.currentMonth.length < 3 ? this.state.currentMonth[0].toString('yyyy MM') : this.state.currentMonth[1].toString('yyyy MM')
+    const currentDateString = nextState.currentMonth[1].toString('yyyy MM');
+    const minDateString = this.state.currentMonth.length < 3 ? this.state.currentMonth[0].toString('yyyy MM') : this.state.currentMonth[1].toString('yyyy MM');
 
     const minDate = parseDate(this.props.minDate);
 
@@ -133,27 +133,27 @@ class Calendar extends Component {
       ) {
 
       let currentSelectDay = nextState.currentMonth[1].clone();
-      if (current) currentSelectDay = currentSelectDay.setDate(current.getDate())
+      if (current) currentSelectDay = currentSelectDay.setDate(current.getDate());
 
       while (currentSelectDay.getMonth() !== nextState.currentMonth[1].clone().getMonth()) {
-        currentSelectDay.addDays(-1)
+        currentSelectDay.addDays(-1);
       }
       if (currentSelectDay < minDate){
-        this._handleDayInteraction(minDate, this.props.onDayPress)
+        this._handleDayInteraction(minDate, this.props.onDayPress);
       } else {
-        this._handleDayInteraction(currentSelectDay, this.props.onDayPress)
-      };
+        this._handleDayInteraction(currentSelectDay, this.props.onDayPress);
+      }
     }
   }
 
   selectChangeMonth = (day) => {
     const dateString = day.toString('yyyy MM');
-    const minDateString = this.state.currentMonth[1].toString('yyyy MM')
+    const minDateString = this.state.currentMonth[1].toString('yyyy MM');
 
     if (dateString > minDateString) {
-      this.scrollChangeMonth(this.props.calendarWidth + 1)
+      this.scrollChangeMonth(this.props.calendarWidth + 1);
     } else if (dateString < minDateString) {
-      this.scrollChangeMonth(this.props.calendarWidth - 1)
+      this.scrollChangeMonth(this.props.calendarWidth - 1);
     }
   }
 
@@ -163,34 +163,34 @@ class Calendar extends Component {
     this.state.currentMonth.map((value) =>
       newMonth.push(value.clone())
     );
-    const currentDate = (this.state.currentMonth.length < 3) ? this.state.currentMonth[0].clone() : this.state.currentMonth[1].clone()
-    const isGonextMonth = isAndroid ? scrollX >= this.props.calendarWidth : scrollX > this.props.calendarWidth
+    const currentDate = (this.state.currentMonth.length < 3) ? this.state.currentMonth[0].clone() : this.state.currentMonth[1].clone();
+    const isGonextMonth = isAndroid ? scrollX >= this.props.calendarWidth : scrollX > this.props.calendarWidth;
     if(isGonextMonth) {
-      const newDate = currentDate.addMonths(2).clone()
-      newMonth.push(newDate)
+      const newDate = currentDate.addMonths(2).clone();
+      newMonth.push(newDate);
       if(newMonth.length > 3) {
         newMonth.shift();
       }
       this.setState({
         currentMonth: newMonth,
-      })
+      });
     } else if (scrollX < this.props.calendarWidth) {
 
       if (this.state.currentMonth[0].toString('yyyy MM') < this.state.minMonth.toString('yyyy MM')) {
-        this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: true })
+        this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: true });
         return null;
       }
-      const newDate = currentDate.addMonths(-2).clone()
+      const newDate = currentDate.addMonths(-2).clone();
       if(newMonth.length >= 3) {
-        newMonth.unshift(newDate)
-        newMonth.pop()
+        newMonth.unshift(newDate);
+        newMonth.pop();
       }
       this.setState({
         currentMonth: newMonth,
-      })
+      });
     }
     if (newMonth.length >= 3){
-      this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: isAndroid })
+      this.scrollView.scrollTo({ x: this.props.calendarWidth, y: 0, animated: isAndroid });
     }
   }
 
@@ -219,9 +219,9 @@ class Calendar extends Component {
 
   addMonth = (count) => {
     if (count > 0) {
-      this.scrollChangeMonth(this.props.calendarWidth + 1)
+      this.scrollChangeMonth(this.props.calendarWidth + 1);
     } else {
-      this.scrollChangeMonth(this.props.calendarWidth - 1)
+      this.scrollChangeMonth(this.props.calendarWidth - 1);
     }
   }
 
@@ -331,8 +331,8 @@ class Calendar extends Component {
           indicator = true;
         }
       }
-      showMonthWeeks = [...showMonthWeeks, weeks]
-    })
+      showMonthWeeks = [...showMonthWeeks, weeks];
+    });
 
     return (
       <View style={[this.style.container, this.props.style]}>
@@ -343,6 +343,7 @@ class Calendar extends Component {
           addMonth={this.addMonth}
           showIndicator={indicator}
           firstDay={this.props.firstDay}
+          weekDayNames={this.props.weekDayNames}
           renderArrow={this.props.renderArrow}
           monthFormat={this.props.monthFormat}
           hideDayNames={this.props.hideDayNames}
