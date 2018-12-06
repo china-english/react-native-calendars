@@ -1,6 +1,6 @@
 {
   "name": "react-native-calendars-fei",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "main": "src/index.js",
   "description": "React Native Calendar Components",
   "scripts": {
@@ -11,7 +11,7 @@
     "react-native",
     "calendars"
   ],
-  "author": "AFei",
+  "author": "Fei",
   "license": "MIT",
   "dependencies": {
     "lodash.get": "^4.4.2",

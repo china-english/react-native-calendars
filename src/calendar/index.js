@@ -118,7 +118,7 @@ class Calendar extends Component {
 
   componentWillUpdate(nextProps, nextState) {
     const nextCurrentMonth= parseDate(nextState.currentMonth);
-    const currentDateString = nextState.currentMonth[1].toString('yyyy MM');
+    const currentDateString = nextState.currentMonth[this.state.currentMonth.length < 3 ? 0 : 1].toString('yyyy MM');
     const minDateString = this.state.currentMonth.length < 3 ? this.state.currentMonth[0].toString('yyyy MM') : this.state.currentMonth[1].toString('yyyy MM');
 
     const minDate = parseDate(this.props.minDate);
@@ -132,16 +132,18 @@ class Calendar extends Component {
         && this.props.current === nextProps.current
       ) {
 
-      let currentSelectDay = nextState.currentMonth[1].clone();
+      let currentSelectDay = nextState.currentMonth.length < 3 ? nextState.currentMonth[0].clone() : nextState.currentMonth[1].clone();
       if (current) currentSelectDay = currentSelectDay.setDate(current.getDate());
 
-      while (currentSelectDay.getMonth() !== nextState.currentMonth[1].clone().getMonth()) {
+      while (currentSelectDay.getMonth() !== nextState.currentMonth[nextState.currentMonth.length < 3 ? 0 : 1].clone().getMonth()) {
         currentSelectDay.addDays(-1);
       }
       if (currentSelectDay < minDate){
         this._handleDayInteraction(minDate, this.props.onDayPress);
       } else {
-        this._handleDayInteraction(currentSelectDay, this.props.onDayPress);
+        let lastSelectDay = this.state.currentMonth.length < 3 ? this.state.currentMonth[0].clone(): this.state.currentMonth[1].clone();
+        if (currentSelectDay !== lastSelectDay)
+          this._handleDayInteraction(currentSelectDay, this.props.onDayPress);
       }
     }
   }
